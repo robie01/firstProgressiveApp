@@ -8,3 +8,8 @@ self.addEventListener('activate', function(event) {
     // this makes sure that sw are loaded/activated correctly
     return self.clients.claim();
 });
+// this will trigger if images, css or script is loaded
+self.addEventListener('fetch' , function (event) {
+console.log('[Service Worker] Fetching something...', event);
+event.respondWith(fetch(event.request));
+});
