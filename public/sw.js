@@ -30,17 +30,25 @@ self.addEventListener('activate', function(event) {
     return self.clients.claim();
 });
 // this will trigger if images, css or script is loaded
-self.addEventListener('fetch' , function (event) {
-event.respondWith(
-    // caches is the over all storage.
-    caches.match(event.request)
-        .then(function (response) {
-           if (response) {
-               return response; // returning a value from cache
-           } else
-           {
-               return fetch(event.request);
-           }
+self.addEventListener('fetch', function (event) {
+    event.respondWith(
+        // caches is the over all storage.
+        caches.match(event.request)
+            .then(function (response) {
+                if (response) {
+                    return response; // returning a value from cache
+                } else {
+                    return fetch(event.request)
+                        .then(function (res) {
+                           return caches.open('dynamic')
+                                .then(function (cache) {
+                                    cache.put(event.request.url, res.clone());
+                                    return res;
+                                })
+                        });
+                }
+            }).catch(function (err) {
+                console.log(err);
         })
-);
+    );
 });
