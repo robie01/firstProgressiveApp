@@ -1,5 +1,5 @@
 
-var CACHE_STATIC_NAME = 'static-v8';
+var CACHE_STATIC_NAME = 'static-v9';
 var CACHE_DYNAMIC_NAME = 'dynamic-v2';
 
 // self means give access to service worker in background process
@@ -11,6 +11,8 @@ self.addEventListener('install', function(event) {
                 console.log('[Service Worker] PreCaching App Shell');
                 cache.addAll([
                     '/',
+                    '/index.html',
+                    '/offline.html',
                     '/src/js/app.js',
                     '/src/js/feed.js',
                     '/src/js/promise.js',
@@ -65,6 +67,10 @@ self.addEventListener('fetch', function (event) {
                         });
                 }
             }).catch(function (err) {
+                return caches.open(CACHE_STATIC_NAME)
+                    .then(function (cache) {
+                      return cache.match('/offline.html');
+                    });
                 console.log(err);
         })
     );
