@@ -1,8 +1,12 @@
+
+var CACHE_STATIC_NAME = 'static-v8';
+var CACHE_DYNAMIC_NAME = 'dynamic-v2';
+
 // self means give access to service worker in background process
 self.addEventListener('install', function(event) {
     console.log('[Service Worker] Installing Service Worker...', event);
     event.waitUntil(
-        caches.open('pre-cache-v2')
+        caches.open(CACHE_STATIC_NAME)
             .then(function (cache) {
                 console.log('[Service Worker] PreCaching App Shell');
                 cache.addAll([
@@ -23,15 +27,15 @@ self.addEventListener('install', function(event) {
             })
     );
 });
-// A comment
 
 self.addEventListener('activate', function(event) {
     console.log('[Service Worker] Activating Service Worker...', event);
     event.waitUntil(
+        // updating caches and removing the old one.
         caches.keys()
             .then(function (keyListCachesNames) {
                 return Promise.all(keyListCachesNames.map(function (key) {
-                    if (key !== 'pre-cache-v2' && key !== 'dynamic') {
+                    if (key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
                         console.log('[Service Worker] Removing old cache.', key);
                         return caches.delete(key);
                     }
@@ -41,7 +45,7 @@ self.addEventListener('activate', function(event) {
     // this makes sure that sw are loaded/activated correctly
     return self.clients.claim();
 });
-// this will trigger if images, css or script is loaded
+// resonsible for fetching cache in cache storage
 self.addEventListener('fetch', function (event) {
     event.respondWith(
         // caches is the over all storage.
@@ -52,7 +56,8 @@ self.addEventListener('fetch', function (event) {
                 } else {
                     return fetch(event.request)
                         .then(function (res) {
-                           return caches.open('dynamic')
+                            // how to save url that is not running from domain - cross origin
+                           return caches.open(CACHE_DYNAMIC_NAME)
                                 .then(function (cache) {
                                     cache.put(event.request.url, res.clone());
                                     return res;
